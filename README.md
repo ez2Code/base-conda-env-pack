@@ -37,10 +37,18 @@ mkdir -p /opt/company/runtime-v1
 tar -xzf python-3.11-linux-x86_64.tar.gz -C /opt/company/runtime-v1
 /opt/company/runtime-v1/bin/python /opt/company/runtime-v1/bin/conda-unpack
 /opt/company/runtime-v1/bin/python -V
+export PATH="/opt/company/runtime-v1/bin:$PATH"
 ```
 
 Adjust the archive name for the selected Python series. After conda-unpack,
 do not move this directory. Extract the original archive again for another path.
+
+Relocated command entry points may use `/usr/bin/env python3.X`, so prepend
+the runtime's `bin` directory to PATH even when invoking a command by absolute
+path. For pip, explicitly invoking `bin/python -m pip` also avoids interpreter
+lookup through PATH. Services must set their own PATH; they do not inherit an
+interactive shell's export. Packages with activation hooks may additionally
+require sourcing `bin/activate`.
 
 Install private dependencies in the isolated build environment:
 

@@ -71,6 +71,9 @@ for test_case in debian:buster-slim,2.28; do
     tar -xzf "/artifacts/$1" -C /opt/relocated-runtime
     /opt/relocated-runtime/bin/python /opt/relocated-runtime/bin/conda-unpack
     /opt/relocated-runtime/bin/python -I -c "import ssl, sqlite3, ctypes, bz2, lzma, zlib; print(ssl.OPENSSL_VERSION)"
+    /opt/relocated-runtime/bin/python -m pip --version
+    # Relocated entry points may use /usr/bin/env python3.X.
+    export PATH="/opt/relocated-runtime/bin:$PATH"
     /opt/relocated-runtime/bin/pip --version
     /opt/relocated-runtime/bin/python -m pip check
   ' bash "$archive" "$expected_glibc"
