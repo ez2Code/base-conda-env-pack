@@ -15,7 +15,7 @@ on:
           - '3.14'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -40,3 +40,15 @@ jobs:
           compression-level: 0
           if-no-files-found: error
           retention-days: 30
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_tag="python-${PYTHON_VERSION}-build-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          gh release create "$release_tag" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "Portable Python ${PYTHON_VERSION} - Build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes "Linux x86_64; Debian 10 / glibc 2.28 baseline. Includes runtime archive, dependency manifests and SHA256SUMS."

@@ -2,10 +2,14 @@
 
 Copy this directory's contents, including `.github`, to a GitHub repository.
 Run **Actions > Build portable Python > Run workflow** and select Python.
-Download the completed run's artifact. No release is published automatically.
-Artifacts expire after 30 days and downloading them can require GitHub login.
-For durable distribution, publish the reviewed output to your artifact store or
-GitHub Release separately.
+Each successful run publishes a GitHub Release containing all files in `dist/`,
+including the runtime archive, dependency manifests and SHA256SUMS.
+Release tags use `python-<series>-build-<run-number>-<run-attempt>` so reruns
+create a new release instead of overwriting earlier output.
+The workflow uses the automatic GITHUB_TOKEN with `contents: write`; no personal
+access token is needed. Repository or organization policies must allow releases.
+The Actions artifact is also retained for 30 days. Release assets are not subject
+to that artifact retention period; private repository downloads require access.
 
 The workflow creates Linux x86_64 Python + pip using only conda-forge, with
 conda-pack in a separate build environment. It checks installed package origins,
@@ -29,7 +33,8 @@ CONDA_OVERRIDE_GLIBC does not constrain pip wheel selection or source builds.
 
 ## Deployment
 
-Run from the extracted GitHub artifact directory. Use a new empty destination:
+Download the Release assets into one directory, or extract the Actions artifact.
+Run from that directory and use a new empty destination:
 
 ```bash
 sha256sum -c SHA256SUMS
