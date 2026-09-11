@@ -13,12 +13,12 @@ to that artifact retention period; private repository downloads require access.
 
 The workflow creates Linux x86_64 Python + pip using only conda-forge, with
 conda-pack in a separate build environment. It checks installed package origins,
-exports exact Conda package URLs, and tests relocation in Debian 10 without
+exports exact Conda package URLs, and tests relocation in Debian 9 and 10 without
 network access. No internal packages or repository credentials are needed.
 
-The glibc solver baseline is 2.28 and the minimum supported distribution is
-Debian 10. The container test asserts the actual libc version.
-Debian 9 / glibc 2.24 is outside this template's compatibility target.
+The glibc solver baseline is 2.24 and the minimum compatibility target is
+Debian 9. Container tests assert glibc 2.24 on Debian 9 and 2.28 on Debian 10.
+This compatibility target does not imply ongoing OS security support.
 This does not establish compatibility with every kernel 5.4/5.15 machine.
 Verify architecture, glibc,
 CPU requirements and application behavior on your oldest actual target.
@@ -55,7 +55,10 @@ lookup through PATH. Services must set their own PATH; they do not inherit an
 interactive shell's export. Packages with activation hooks may additionally
 require sourcing `bin/activate`.
 
-Install private dependencies in the isolated build environment:
+Install private dependencies in a Debian 9 / glibc 2.24 isolated build
+environment, or an equivalent compatible toolchain. Installing on Debian 10
+can select wheels or compile extensions requiring glibc 2.28. Test the final
+environment on both Debian 9 and 10 after installation:
 
 ```bash
 /opt/company/runtime-v1/bin/python -m pip install \

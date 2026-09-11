@@ -2,7 +2,7 @@
 set -euo pipefail
 
 : "${PYTHON_VERSION:=3.11}"
-: "${CONDA_OVERRIDE_GLIBC:=2.28}"
+: "${CONDA_OVERRIDE_GLIBC:=2.24}"
 export CONDA_OVERRIDE_GLIBC
 [[ "$(uname -s)" == Linux && "$(uname -m)" == x86_64 ]] || {
   echo 'This starter builds only Linux x86_64.' >&2
@@ -57,8 +57,8 @@ archive="python-${PYTHON_VERSION}-linux-x86_64.tar.gz"
 "$pack_tools/bin/conda-pack" -p "$runtime" -o "$dist_dir/$archive"
 
 # Test without access to the original prefix, host libraries, or network.
-# Buster exercises both the Debian 10 minimum and the glibc 2.28 floor.
-for test_case in debian:buster-slim,2.28; do
+# Stretch exercises the glibc 2.24 floor; Buster checks Debian 10 as well.
+for test_case in debian:stretch-slim,2.24 debian:buster-slim,2.28; do
   test_image=${test_case%,*}
   expected_glibc=${test_case#*,}
   docker run --rm --network none \
