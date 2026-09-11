@@ -24,7 +24,13 @@ channel=https://conda.anaconda.org/conda-forge
 micromamba create -y -p "$runtime" --override-channels \
   --strict-channel-priority -c "$channel" "python=$PYTHON_VERSION" pip
 micromamba create -y -p "$pack_tools" --override-channels \
-  --strict-channel-priority -c "$channel" python=3.11 conda-pack=0.8.1
+  --strict-channel-priority -c "$channel" \
+  python=3.11 conda-pack=0.8.1 setuptools=80.9.0
+
+# conda-pack 0.8.1 imports pkg_resources, removed in setuptools 82.
+"$pack_tools/bin/python" -c 'import pkg_resources; import conda_pack.cli'
+"$pack_tools/bin/conda-pack" --version
+"$pack_tools/bin/python" -m pip check
 
 # Check installed origins, not only the requested channel configuration.
 "$pack_tools/bin/python" - "$runtime" "$dist_dir" <<'PY'
