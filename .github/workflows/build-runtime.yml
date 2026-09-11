@@ -1,0 +1,42 @@
+name: Build portable Python
+
+on:
+  workflow_dispatch:
+    inputs:
+      python_version:
+        description: Python version series
+        required: true
+        default: '3.11'
+        type: choice
+        options:
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      PYTHON_VERSION: ${{ inputs.python_version }}
+      CONDA_OVERRIDE_GLIBC: '2.28'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v3
+        with:
+          init-shell: none
+          generate-run-shell: false
+      - name: Build and test archive
+        shell: bash
+        run: bash scripts/build-runtime.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable-python-${{ inputs.python_version }}-linux-x86_64
+          path: dist/
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
