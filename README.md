@@ -1,20 +1,30 @@
 # Portable Python starter
 
 Copy this directory's contents, including `.github`, to a GitHub repository.
-Run **Actions > Build portable Python > Run workflow** and select Python.
+Run **Actions > Build portable Python > Run workflow** and select Python and
+`architecture`: `x86_64` (default) or `arm64`. Run once per desired architecture.
 Each successful run publishes a GitHub Release containing all files in `dist/`,
 including the runtime archive, dependency manifests and SHA256SUMS.
-Release tags use `python-<series>-build-<run-number>-<run-attempt>` so reruns
+Release tags use `python-<series>-<architecture>-build-<run-number>-<run-attempt>` so reruns
 create a new release instead of overwriting earlier output.
 The workflow uses the automatic GITHUB_TOKEN with `contents: write`; no personal
 access token is needed. Repository or organization policies must allow releases.
 The Actions artifact is also retained for 30 days. Release assets are not subject
 to that artifact retention period; private repository downloads require access.
 
-The workflow creates Linux x86_64 Python + pip using only conda-forge, with
+The workflow creates Linux x86_64 or arm64 Python + pip using only conda-forge, with
 conda-pack in a separate build environment. It checks installed package origins,
 exports exact Conda package URLs, and tests relocation in Debian 9 and 10 without
 network access. No internal packages or repository credentials are needed.
+
+Builds run natively: x86_64 on `ubuntu-22.04`, arm64 on `ubuntu-24.04-arm`.
+Conda platforms are `linux-64` and `linux-aarch64`, respectively. Package
+metadata is checked for the selected platform (or `noarch`), and Docker tests
+explicitly select `linux/amd64` or `linux/arm64` and verify the runtime machine.
+No cross-compilation or QEMU setup is used. Local builds require a Linux host
+of the target architecture with micromamba and Docker. `TARGET_ARCH` defaults
+to the host architecture; `aarch64` is accepted as an alias for `arm64`.
+Use an empty output directory/workspace for each build to avoid mixing assets.
 
 The glibc solver baseline is 2.24 and the minimum compatibility target is
 Debian 9. Container tests assert glibc 2.24 on Debian 9 and 2.28 on Debian 10.
@@ -45,7 +55,9 @@ tar -xzf python-3.11-linux-x86_64.tar.gz -C /opt/company/runtime-v1
 export PATH="/opt/company/runtime-v1/bin:$PATH"
 ```
 
-Adjust the archive name for the selected Python series. After conda-unpack,
+Adjust the archive name for the selected Python series and architecture; for
+example, `python-3.14-linux-arm64.tar.gz`. The archive must match the target CPU.
+After conda-unpack,
 do not move this directory. Extract the original archive again for another path.
 
 Relocated command entry points may use `/usr/bin/env python3.X`, so prepend
@@ -58,7 +70,9 @@ require sourcing `bin/activate`.
 Install private dependencies in a Debian 9 / glibc 2.24 isolated build
 environment, or an equivalent compatible toolchain. Installing on Debian 10
 can select wheels or compile extensions requiring glibc 2.28. Test the final
-environment on both Debian 9 and 10 after installation:
+environment on both Debian 9 and 10 after installation. This second-stage build
+must also use the target CPU architecture; an x86_64 environment cannot be
+repacked into an arm64 environment:
 
 ```bash
 /opt/company/runtime-v1/bin/python -m pip install \

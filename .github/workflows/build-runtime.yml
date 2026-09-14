@@ -13,16 +13,25 @@ on:
           - '3.12'
           - '3.13'
           - '3.14'
+      architecture:
+        description: Target Linux architecture (native build)
+        required: true
+        default: x86_64
+        type: choice
+        options:
+          - x86_64
+          - arm64
 
 permissions:
   contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ inputs.architecture == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-22.04' }}
     timeout-minutes: 30
     env:
       PYTHON_VERSION: ${{ inputs.python_version }}
+      TARGET_ARCH: ${{ inputs.architecture }}
       CONDA_OVERRIDE_GLIBC: '2.24'
     steps:
       - uses: actions/checkout@v5
@@ -35,7 +44,7 @@ jobs:
         run: bash scripts/build-runtime.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: portable-python-${{ inputs.python_version }}-linux-x86_64
+          name: portable-python-${{ inputs.python_version }}-linux-${{ inputs.architecture }}
           path: dist/
           compression-level: 0
           if-no-files-found: error
@@ -47,8 +56,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          release_tag="python-${PYTHON_VERSION}-build-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          release_tag="python-${PYTHON_VERSION}-${TARGET_ARCH}-build-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
           gh release create "$release_tag" dist/* \
             --target "$GITHUB_SHA" \
-            --title "Portable Python ${PYTHON_VERSION} - Build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
-            --notes "Linux x86_64; Debian 9 / glibc 2.24 baseline. Relocation tested on Debian 9 and 10. Includes runtime archive, dependency manifests and SHA256SUMS."
+            --title "Portable Python ${PYTHON_VERSION} (${TARGET_ARCH}) - Build ${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" \
+            --notes "Linux ${TARGET_ARCH}; Debian 9 / glibc 2.24 baseline. Relocation tested on Debian 9 and 10. Includes runtime archive, dependency manifests and SHA256SUMS."
