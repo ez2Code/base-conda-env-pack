@@ -3,6 +3,11 @@
 Copy this directory's contents, including `.github`, to a GitHub repository.
 Run **Actions > Build portable Python > Run workflow** and select Python and
 `architecture`: `x86_64` (default) or `arm64`. Run once per desired architecture.
+Supported Python series are 3.10, 3.11 (default), 3.12, 3.13 and 3.14.
+Local builds select the series with `PYTHON_VERSION`, for example:
+`PYTHON_VERSION=3.10 bash scripts/build-runtime.sh`.
+The separate packing-tools environment stays on Python 3.11 regardless of the
+selected runtime version.
 Each successful run publishes a GitHub Release containing all files in `dist/`,
 including the runtime archive, dependency manifests and SHA256SUMS.
 Release tags use `python-<series>-<architecture>-build-<run-number>-<run-attempt>` so reruns

@@ -31,7 +31,7 @@ esac
 # Prevent an inherited Conda platform override from selecting foreign binaries.
 export CONDA_SUBDIR="$conda_platform"
 case "$PYTHON_VERSION" in
-  3.11|3.12|3.13|3.14) ;;
+  3.10|3.11|3.12|3.13|3.14) ;;
   *) echo 'Unsupported Python series' >&2; exit 1 ;;
 esac
 
